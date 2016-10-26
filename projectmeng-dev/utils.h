@@ -1,28 +1,20 @@
 #include <opencv2/opencv.hpp>
 
 
-cv::Mat cvMakehgtform(double xrotate, double yrotate, double zrotate);
-
-cv::Mat cvMakehgtform(double xrotate, double yrotate, double zrotate)
+typedef struct
 {
-	// Rotation matrices around the X, Y, and Z axis
-	cv::Mat RX = (cv::Mat_<double>(4, 4) <<
-		1, 0, 0, 0,
-		0, cos(xrotate), -sin(xrotate), 0,
-		0, sin(xrotate), cos(xrotate), 0,
-		0, 0, 0, 1);
-	cv::Mat RY = (cv::Mat_<double>(4, 4) <<
-		cos(yrotate), 0, sin(yrotate), 0,
-		0, 1, 0, 0,
-		-sin(yrotate), 0, cos(yrotate), 0,
-		0, 0, 0, 1);
-	cv::Mat RZ = (cv::Mat_<double>(4, 4) <<
-		cos(zrotate), -sin(zrotate), 0, 0,
-		sin(zrotate), cos(zrotate), 0, 0,
-		0, 0, 1, 0,
-		0, 0, 0, 1);
+	double f;
+	double centerX;
+	double centerY;
+	double xrotate;
+	double yrotate;
+	double zrotate;
+}rotateMat_t;
 
-	// Composed rotation matrix with (RX, RY, RZ)
-	cv::Mat R = RX * RY * RZ;
-	return R;
-}
+cv::Mat cvMakehgtform(double xrotate, double yrotate, double zrotate);
+void to_homogeneous(const std::vector< cv::Point2f >& non_homogeneous, std::vector< cv::Point3f >& homogeneous);
+void from_homogeneous(const std::vector< cv::Point3f >& homogeneous, std::vector< cv::Point2f >& non_homogeneous);
+cv::Rect_<float> get_bounding_box(const std::vector<cv::Point2f>& p);
+void homography_warp(const cv::Mat& src, const cv::Mat& H, cv::Mat& dst);
+void rotate_mat_axis(const cv::Mat &image, cv::Mat &image_out, double f, double centerX, double centerY, double xrotate, double yrotate, double zrotate);
+void rotate_mat_axis(const cv::Mat &image, cv::Mat &image_out, rotateMat_t &rotate_parameter);
