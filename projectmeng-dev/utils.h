@@ -1,9 +1,9 @@
 #include <opencv2/opencv.hpp>
 
 
-cv::Mat cvMakehgtform(const cv::Mat &input, double xrotate, double yrotate, double zrotate);
+cv::Mat cvMakehgtform(double xrotate, double yrotate, double zrotate);
 
-cv::Mat cvMakehgtform(const cv::Mat &input, double xrotate, double yrotate, double zrotate)
+cv::Mat cvMakehgtform(double xrotate, double yrotate, double zrotate)
 {
 	// Rotation matrices around the X, Y, and Z axis
 	cv::Mat RX = (cv::Mat_<double>(4, 4) <<
