@@ -19,7 +19,7 @@ int main(void)
 {
 
 	Mat img1 = imread("result_0001.png");
-	Mat img2 = imread("result_0257.png");
+	Mat img2 = imread("result_0002.png");
 #if DEBUG_READ_XML
 	Mat homography;
 	FileStorage fs("H1to3p.xml", FileStorage::READ);
@@ -89,24 +89,36 @@ int main(void)
 		obj.push_back(matched1[good_matches[i].queryIdx].pt);
 		scene.push_back(matched2[good_matches[i].trainIdx].pt);
 	}
-#if 0
+#if 1
 	Mat H = findHomography(obj, scene, CV_RANSAC);
 
 	// Homography from img1 to frontal-parallel view
-	Mat H_1 = (cv::Mat_<double>(3, 3) << 
+	Mat H_10 = (cv::Mat_<double>(3, 3) << 
 		
 		1.257283196548464, 0.0993716665968889, -6.145665573664694e-13,
 		0.2134525863531523, 1.23427760955649, -1.359858406435599e-13,
 		0.0004237178446254059, 0.0004661999569552454, 1);
-
+	Mat H_20 = H_10 * H;
+	//Mat H_02;
+	//invert(H_20, H_02);
+	//Mat H_12 = H_10 * H_02;
 	//cout << H_1 << endl;
-	Mat warp, frontal;
-	homography_warp(img2, H_1 * H, warp);
-	homography_warp(img1, H_1, frontal);
-	imshow("akaze_feature_matching: Warp result", warp);
-	imshow("fdsffd", frontal);
+	Mat warp, frontal, overlap;
+	//homography_warp(img2, H_10 * H, warp);
+	//cout << H_12 << endl;
+	//cout << H << endl;
+	homography_warp(img2, H_20, frontal);
+	homography_warp(img1, H_10, warp);
+
+	cout << H_20 << endl;
+	cout << H_10 << endl;
+
+	//imshow("img1", img1);
+	//imshow("img2", img2);
+	imshow("img2 -> frontal", frontal);
+	imshow("img1 -> frontal", warp);
 #endif
-#if 1
+#if 0
 	double inlier_ratio = inliers1.size() * 1.0 / matched1.size();
 	cout << "A-KAZE Matching Results" << endl;
 	cout << "*******************************" << endl;
