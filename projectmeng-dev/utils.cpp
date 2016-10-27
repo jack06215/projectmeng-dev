@@ -2,6 +2,30 @@
 #include <cmath>
 #include "utils.h"
 
+cv::Mat imread_limitedWidth(cv::String filename, int length_limit, int imread_flag)
+{
+	// Load an image
+	cv::Mat image = imread(filename, imread_flag);
+
+	if (image.empty())
+	{
+		std::cerr << "Cannot open image" << std::endl;
+		return image;
+	}
+
+	// Resize if image length is bigger than 10000 px
+	if (image.rows > 1000 | image.cols > 1000)
+	{
+		std::cout << "imread_resize:: Limit the image size to 1000 px in length" << std::endl;
+		double fx = length_limit / static_cast<double>(image.cols);
+		double newHeight = static_cast<double>(image.rows) * fx;
+		double fy = newHeight / image.rows;
+		cv::resize(image, image, cv::Size(0, 0), fx, fy);
+	}
+
+	return image;
+}
+
 cv::Mat cvMakehgtform(double xrotate, double yrotate, double zrotate)
 {
 	// Rotation matrices around the X, Y, and Z axis
@@ -187,6 +211,89 @@ void rotate_mat_axis(const cv::Mat &image, cv::Mat &image_out, double f, double 
 	homography_warp(image, H, image_out);
 }
 
+void rotate_mat_axis(const cv::Mat &image, cv::Mat &image_out, cv::Mat H, double f, double centerX, double centerY, double xrotate, double yrotate, double zrotate)
+{
+
+	// Step 1: Make transformation matrix
+	cv::Mat trans4by4 = cvMakehgtform(xrotate, yrotate, 0.0);
+	cv::Mat R_mat = trans4by4(cv::Rect(0, 0, 3, 3));
+
+	cv::Mat K_mat = (cv::Mat_<double>(3, 3) <<
+		f, 0.0, 0.0,
+		0.0, f, 0.0,
+		0.0, 0.0, 1.0);
+	cv::Mat K_c = K_mat.clone();
+	K_c = K_c.inv();
+
+	cv::Mat C = (cv::Mat_<double>(3, 3) <<
+		1, 0, -centerX,
+		0, 1, -centerY,
+		0, 0, 1);
+
+	H = K_mat * R_mat * K_c * C;
+
+	// Step 2: Calclating Resultant Translation and Scale
+	std::vector<cv::Point2f> Ref_c;
+	std::vector<cv::Point2f> Ref_c_out;
+	Ref_c.resize(4);
+	Ref_c_out.resize(4);
+
+	Ref_c[0].x = 0;		Ref_c[0].y = 0; 									// top-left
+	Ref_c[1].x = double(image.cols);	Ref_c[1].y = 0;						// top-right
+	Ref_c[2].x = double(image.cols);	Ref_c[2].y = double(image.rows);	// bottom-right
+	Ref_c[3].x = 0;		Ref_c[3].y = double(image.rows);					// bottom-left
+
+	cv::perspectiveTransform(Ref_c, Ref_c_out, H);
+
+	//Scalling:
+	double scale_fac = std::abs((std::max(Ref_c_out[1].x, Ref_c_out[2].x) - std::min(Ref_c_out[0].x, Ref_c_out[3].x)) / image.cols); //Based on Length
+
+																																	 // Re-scale 4 corner points by the scale_fac
+	Ref_c_out[0].x = Ref_c_out[0].x / scale_fac;
+	Ref_c_out[0].y = Ref_c_out[0].y / scale_fac;
+	Ref_c_out[1].x = Ref_c_out[1].x / scale_fac;
+	Ref_c_out[1].y = Ref_c_out[1].y / scale_fac;
+	Ref_c_out[2].x = Ref_c_out[2].x / scale_fac;
+	Ref_c_out[2].y = Ref_c_out[2].y / scale_fac;
+	Ref_c_out[3].x = Ref_c_out[3].x / scale_fac;
+	Ref_c_out[3].y = Ref_c_out[3].y / scale_fac;
+
+	Ref_c_out[1].x = Ref_c_out[1].x - Ref_c_out[0].x;
+	Ref_c_out[1].y = Ref_c_out[1].y - Ref_c_out[0].y;
+	Ref_c_out[2].x = Ref_c_out[2].x - Ref_c_out[0].x;
+	Ref_c_out[2].y = Ref_c_out[2].y - Ref_c_out[0].y;
+	Ref_c_out[3].x = Ref_c_out[3].x - Ref_c_out[0].x;
+	Ref_c_out[3].y = Ref_c_out[3].y - Ref_c_out[0].y;
+	Ref_c_out[0].x = Ref_c_out[0].x - Ref_c_out[0].x;
+	Ref_c_out[0].y = Ref_c_out[0].y - Ref_c_out[0].y;
+
+	//For the translated/scalled image
+	H = getPerspectiveTransform(Ref_c, Ref_c_out);
+
+	int maxCols(0), maxRows(0), minCols(0), minRows(0);
+
+	for (int i = 0; i<Ref_c_out.size(); i++)
+	{
+		if (maxRows < Ref_c_out.at(i).y)
+			maxRows = Ref_c_out.at(i).y;
+
+		else if (minRows > Ref_c_out.at(i).y)
+			minRows = Ref_c_out.at(i).y;
+
+		if (maxCols < Ref_c_out.at(i).x)
+			maxCols = Ref_c_out.at(i).x;
+
+		else if (minCols > Ref_c_out.at(i).x)
+			minCols = Ref_c_out.at(i).x;
+	}
+
+	// ------------ Warp Z axix ------------------ //
+	trans4by4 = cvMakehgtform(0.0f, 0.0f, zrotate);
+	cv::Mat R_z = trans4by4(cv::Rect(0, 0, 3, 3));
+	H = H * R_z;
+	homography_warp(image, H, image_out);
+}
+
 void rotate_mat_axis(const cv::Mat &image, cv::Mat &image_out, rotateMat_t &rotate_parameter)
 {
 
@@ -225,6 +332,89 @@ void rotate_mat_axis(const cv::Mat &image, cv::Mat &image_out, rotateMat_t &rota
 	double scale_fac = std::abs((std::max(Ref_c_out[1].x, Ref_c_out[2].x) - std::min(Ref_c_out[0].x, Ref_c_out[3].x)) / image.cols); //Based on Length
 
 																													  // Re-scale 4 corner points by the scale_fac
+	Ref_c_out[0].x = Ref_c_out[0].x / scale_fac;
+	Ref_c_out[0].y = Ref_c_out[0].y / scale_fac;
+	Ref_c_out[1].x = Ref_c_out[1].x / scale_fac;
+	Ref_c_out[1].y = Ref_c_out[1].y / scale_fac;
+	Ref_c_out[2].x = Ref_c_out[2].x / scale_fac;
+	Ref_c_out[2].y = Ref_c_out[2].y / scale_fac;
+	Ref_c_out[3].x = Ref_c_out[3].x / scale_fac;
+	Ref_c_out[3].y = Ref_c_out[3].y / scale_fac;
+
+	Ref_c_out[1].x = Ref_c_out[1].x - Ref_c_out[0].x;
+	Ref_c_out[1].y = Ref_c_out[1].y - Ref_c_out[0].y;
+	Ref_c_out[2].x = Ref_c_out[2].x - Ref_c_out[0].x;
+	Ref_c_out[2].y = Ref_c_out[2].y - Ref_c_out[0].y;
+	Ref_c_out[3].x = Ref_c_out[3].x - Ref_c_out[0].x;
+	Ref_c_out[3].y = Ref_c_out[3].y - Ref_c_out[0].y;
+	Ref_c_out[0].x = Ref_c_out[0].x - Ref_c_out[0].x;
+	Ref_c_out[0].y = Ref_c_out[0].y - Ref_c_out[0].y;
+
+	//For the translated/scalled image
+	H = getPerspectiveTransform(Ref_c, Ref_c_out);
+
+	int maxCols(0), maxRows(0), minCols(0), minRows(0);
+
+	for (int i = 0; i<Ref_c_out.size(); i++)
+	{
+		if (maxRows < Ref_c_out.at(i).y)
+			maxRows = Ref_c_out.at(i).y;
+
+		else if (minRows > Ref_c_out.at(i).y)
+			minRows = Ref_c_out.at(i).y;
+
+		if (maxCols < Ref_c_out.at(i).x)
+			maxCols = Ref_c_out.at(i).x;
+
+		else if (minCols > Ref_c_out.at(i).x)
+			minCols = Ref_c_out.at(i).x;
+	}
+
+	// ------------ Warp Z axix ------------------ //
+	trans4by4 = cvMakehgtform(0.0f, 0.0f, rotate_parameter.zrotate);
+	cv::Mat R_z = trans4by4(cv::Rect(0, 0, 3, 3));
+	H = H * R_z;
+	homography_warp(image, H, image_out);
+}
+
+void rotate_mat_axis(const cv::Mat &image, cv::Mat &image_out, cv::Mat &H, rotateMat_t &rotate_parameter)
+{
+
+	// Step 1: Make transformation matrix
+	cv::Mat trans4by4 = cvMakehgtform(rotate_parameter.xrotate, rotate_parameter.yrotate, 0.0);
+	cv::Mat R_mat = trans4by4(cv::Rect(0, 0, 3, 3));
+
+	cv::Mat K_mat = (cv::Mat_<double>(3, 3) <<
+		rotate_parameter.f, 0.0, 0.0,
+		0.0, rotate_parameter.f, 0.0,
+		0.0, 0.0, 1.0);
+	cv::Mat K_c = K_mat.clone();
+	K_c = K_c.inv();
+
+	cv::Mat C = (cv::Mat_<double>(3, 3) <<
+		1, 0, -rotate_parameter.centerX,
+		0, 1, -rotate_parameter.centerY,
+		0, 0, 1);
+
+	H = K_mat * R_mat * K_c * C;
+
+	// Step 2: Calclating Resultant Translation and Scale
+	std::vector<cv::Point2f> Ref_c;
+	std::vector<cv::Point2f> Ref_c_out;
+	Ref_c.resize(4);
+	Ref_c_out.resize(4);
+
+	Ref_c[0].x = 0;		Ref_c[0].y = 0; 									// top-left
+	Ref_c[1].x = double(image.cols);	Ref_c[1].y = 0;						// top-right
+	Ref_c[2].x = double(image.cols);	Ref_c[2].y = double(image.rows);	// bottom-right
+	Ref_c[3].x = 0;		Ref_c[3].y = double(image.rows);					// bottom-left
+
+	cv::perspectiveTransform(Ref_c, Ref_c_out, H);
+
+	//Scalling:
+	double scale_fac = std::abs((std::max(Ref_c_out[1].x, Ref_c_out[2].x) - std::min(Ref_c_out[0].x, Ref_c_out[3].x)) / image.cols); //Based on Length
+
+																																	 // Re-scale 4 corner points by the scale_fac
 	Ref_c_out[0].x = Ref_c_out[0].x / scale_fac;
 	Ref_c_out[0].y = Ref_c_out[0].y / scale_fac;
 	Ref_c_out[1].x = Ref_c_out[1].x / scale_fac;

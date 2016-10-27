@@ -1,7 +1,7 @@
 ﻿  homography_warping.cpp
   Generating code
-  28 of 295 functions ( 9.5%) were compiled, the rest were copied from previous compilation.
-    0 functions were new in current compilation
-    3 functions had inline decision re-evaluated but remain unchanged
+  37 of 305 functions (12.1%) were compiled, the rest were copied from previous compilation.
+    9 functions were new in current compilation
+    9 functions had inline decision re-evaluated but remain unchanged
   Finished generating code
   homography_warping.vcxproj -> D:\My Github\projectmeng-dev\projectmeng-dev\x64\Release\homography_warping.exe

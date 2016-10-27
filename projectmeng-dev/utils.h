@@ -1,6 +1,5 @@
 #include <opencv2/opencv.hpp>
 
-
 typedef struct
 {
 	double f;
@@ -11,10 +10,11 @@ typedef struct
 	double zrotate;
 }rotateMat_t;
 
+cv::Mat imread_limitedWidth(cv::String filename, int length_limit, int imread_flag = 1);
 cv::Mat cvMakehgtform(double xrotate, double yrotate, double zrotate);
 void to_homogeneous(const std::vector< cv::Point2f >& non_homogeneous, std::vector< cv::Point3f >& homogeneous);
 void from_homogeneous(const std::vector< cv::Point3f >& homogeneous, std::vector< cv::Point2f >& non_homogeneous);
 cv::Rect_<float> get_bounding_box(const std::vector<cv::Point2f>& p);
 void homography_warp(const cv::Mat& src, const cv::Mat& H, cv::Mat& dst);
-void rotate_mat_axis(const cv::Mat &image, cv::Mat &image_out, double f, double centerX, double centerY, double xrotate, double yrotate, double zrotate);
 void rotate_mat_axis(const cv::Mat &image, cv::Mat &image_out, rotateMat_t &rotate_parameter);
+void rotate_mat_axis(const cv::Mat &image, cv::Mat &image_out, cv::Mat &H, rotateMat_t &rotate_parameter);

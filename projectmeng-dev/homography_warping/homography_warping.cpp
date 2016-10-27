@@ -12,32 +12,26 @@ using namespace std;
 
 int main(void)
 {
-	Mat image = imread("../../../sample images/WIN_20160527_16_18_50_Pro.jpg");
+	// Load an image
+	Mat image = imread_limitedWidth("../../../sample images/result_0001.png", 1000);
 	Mat image_out;
-
 	String winName = "homography_warping";
-	if (image.empty())
-	{
-		cerr << "Cannot open image" << endl;
-		return -1;
-	}
-	const int max_length = 1000;
-	double fx = max_length / static_cast<double>(image.cols);
-	double newHeight = static_cast<double>(image.rows) * fx;
-	double fy = newHeight / image.rows;
-	cv::resize(image, image, cv::Size(0, 0), fx, fy);
-
-	// ------------ warping function (under development) --------------------- //
+	
+	// Rotate the axis of image according to the parameter rotateMat_t
 	rotateMat_t axisRotate;
 	axisRotate.f = 4.771474878444084e+02;
 	axisRotate.centerX = image.cols / 2;
 	axisRotate.centerY = image.rows / 2;
-	axisRotate.xrotate = 0.235455723970077;
-	axisRotate.yrotate = 0.384897702191884;
-	axisRotate.zrotate = -0.0450083774232280;
+	axisRotate.xrotate = 0.188683274687147;
+	axisRotate.yrotate = -0.144974545422454;
+	axisRotate.zrotate = 0.0900159739991925;
 
-	rotate_mat_axis(image, image_out, axisRotate);
+	cv::Mat H;
+	rotate_mat_axis(image, image_out, H, axisRotate);
 
+	cout << H << endl;
+
+	// Show the result
 	namedWindow(winName, WINDOW_NORMAL);
 	imshow(winName, image_out);
 	cvWaitKey(0);
