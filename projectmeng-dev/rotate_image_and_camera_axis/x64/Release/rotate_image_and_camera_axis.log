@@ -1,0 +1,9 @@
+﻿  rotate_image_and_camera_axis.cpp
+rotate_image_and_camera_axis.cpp(147): warning C4244: 'argument': conversion from 'double' to 'float', possible loss of data
+rotate_image_and_camera_axis.cpp(148): warning C4244: 'argument': conversion from 'double' to 'float', possible loss of data
+rotate_image_and_camera_axis.cpp(149): warning C4244: 'argument': conversion from 'double' to 'float', possible loss of data
+rotate_image_and_camera_axis.cpp(186): warning C4244: 'argument': conversion from 'double' to 'int', possible loss of data
+  Generating code
+  All 186 functions were compiled because no usable IPDB/IOBJ from previous compilation was found.
+  Finished generating code
+  rotate_image_and_camera_axis.vcxproj -> D:\My Github\projectmeng-dev\projectmeng-dev\x64\Release\rotate_image_and_camera_axis.exe

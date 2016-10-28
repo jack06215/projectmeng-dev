@@ -1,0 +1,6 @@
+﻿  klt_feature_tracking.cpp
+klt_feature_tracking.cpp(102): warning C4244: 'argument': conversion from 'double' to 'int', possible loss of data
+  Generating code
+  All 151 functions were compiled because no usable IPDB/IOBJ from previous compilation was found.
+  Finished generating code
+  klt_feature_tracking.vcxproj -> D:\My Github\projectmeng-dev\projectmeng-dev\x64\Release\klt_feature_tracking.exe

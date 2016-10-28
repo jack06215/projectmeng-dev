@@ -2,6 +2,24 @@
 #include <cmath>
 #include "utils.h"
 
+
+bool isNumeric(const char* pszInput, int nNumberBase)
+{
+	std::string base = "0123456789ABCDEF";
+	std::string input = pszInput;
+
+	return (input.find_first_not_of(base.substr(0, nNumberBase)) == std::string::npos);
+}
+
+bool isFloat(std::string myString)
+{
+	std::istringstream iss(myString);
+	float f;
+	iss >> std::noskipws >> f;	// noskipws considers leading whitespace invalid
+								// Check the entire string was consumed and if either failbit or badbit is set
+	return iss.eof() && !iss.fail();
+}
+
 cv::Mat imread_limitedWidth(cv::String filename, int length_limit, int imread_flag)
 {
 	// Load an image

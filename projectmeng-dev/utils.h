@@ -10,6 +10,8 @@ typedef struct
 	double zrotate;
 }rotateMat_t;
 
+bool isNumeric(const char* pszInput, int nNumberBase);
+bool isFloat(std::string myString);
 cv::Mat imread_limitedWidth(cv::String filename, int length_limit, int imread_flag = 1);
 cv::Mat cvMakehgtform(double xrotate, double yrotate, double zrotate);
 void to_homogeneous(const std::vector< cv::Point2f >& non_homogeneous, std::vector< cv::Point3f >& homogeneous);
