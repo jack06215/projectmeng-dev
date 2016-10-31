@@ -1,4 +1,7 @@
 #include <opencv2/opencv.hpp>
+#include <random>
+#include <limits>
+#include <utility>
 
 typedef struct
 {
@@ -9,6 +12,21 @@ typedef struct
 	double yrotate;
 	double zrotate;
 }rotateMat_t;
+
+template <typename T> T randomFrom(const T min, const T max)
+{
+	static std::random_device rdev;
+	static std::default_random_engine re(rdev());
+	
+	// Create a compile-time conditional 'dist_type' checking on whether the 'value' is a 'real_dist' or 'int_dist'
+	typedef typename std::conditional<
+		std::is_floating_point<T>::value,
+		std::uniform_real_distribution<T>,
+		std::uniform_int_distribution<T> > ::type dist_type;
+
+	dist_type uni(min, max);
+	return static_cast<T>(uni(re));
+}
 
 bool isNumeric(const char* pszInput, int nNumberBase);
 bool isFloat(std::string myString);
