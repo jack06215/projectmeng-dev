@@ -2,7 +2,6 @@
 #include <random>
 #include <limits>
 #include <utility>
-
 typedef struct
 {
 	double f;
