@@ -68,7 +68,7 @@ int main(void)
 
 	//-- Localize the object
 	std::vector<Point2f> pts1;
-	std::vector<Point2f> pts2;
+	std::vector<Point2f> pts2;// pts2_inliers;
 
 	for (int i = 0; i < good_matches.size(); i++)
 	{
@@ -81,8 +81,25 @@ int main(void)
 	Mat epipolar_11 = img1;
 	Mat epipolar_22 = img2;
 	Mat epipolar_1122;
+	Mat fm_inliers;
 
-	cv::Mat F = cv::findFundamentalMat(cv::Mat(pts1), cv::Mat(pts2), cv::FM_8POINT);
+	cv::Mat F = cv::findFundamentalMat(cv::Mat(pts1), cv::Mat(pts2), cv::FM_8POINT, 3.0, 0.99, fm_inliers);
+
+	// Get inliers point obtained from findFundamentalMat
+#if 0
+	std::vector<cv::Point2f> pts1_inliers;
+	std::vector<cv::Point2f> pts2_inliers;
+	for (size_t i = 0; i<fm_inliers.rows; i++)
+	{
+		if (fm_inliers.at<int>(0, i))
+		{
+			pts1_inliers.push_back(pts1[i]);
+			pts2_inliers.push_back(pts2[i]);
+		}
+	}
+	pts1.swap(pts1_inliers);
+	pts2.swap(pts2_inliers);
+#endif
 
 	std::vector<cv::Vec3f> lines1;
 	std::vector<cv::Vec3f> lines2;
@@ -93,39 +110,27 @@ int main(void)
 	drawEpipolarLines(epipolar_11, img1, img2, lines1, pts1, pts2);
 	drawEpipolarLines(epipolar_22, img2, img1, lines2, pts2, pts1);
 
-
 	Mat H1, H2;
 
 	// Perform epipolar line rectification
 	cv::stereoRectifyUncalibrated(pts1, pts2, F, img1.size(), H1, H2);
-
-
 	cv::Mat rectified1;
 	homography_warp(img1, H1, rectified1);
 	cv::resize(rectified1, rectified1, img1.size());
-	//cout << H1 << endl;
-	//cout << rectified1.size() << endl;
-
-	//cv::warpPerspective(img1, rectified1, H1, img1.size());
 
 	cv::Mat rectified2;
 	homography_warp(img2, H2, rectified2);
 	cv::resize(rectified2, rectified2, img2.size());
-	//cv::warpPerspective(img2, rectified2, H2, img2.size());
 
-
+	// Contatonate images together and show them.
 	cv::Mat rectified, result;
-
 	cv::hconcat(rectified1, rectified2, rectified);
 	cv::hconcat(epipolar_11, epipolar_22, epipolar_1122);
 	cv::vconcat(epipolar_1122, rectified, result);
 	cv::namedWindow("result", cv::WINDOW_NORMAL);
 	imshow("result", result);
-
-
 	//int ii = 0;
 	//cout << typeid(img1).name() << endl;
-
 	cvWaitKey(0);
 	return 0;
 }
