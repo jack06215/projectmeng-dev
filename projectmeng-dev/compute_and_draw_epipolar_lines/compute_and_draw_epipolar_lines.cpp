@@ -93,9 +93,36 @@ int main(void)
 	drawEpipolarLines(epipolar_11, img1, img2, lines1, pts1, pts2);
 	drawEpipolarLines(epipolar_22, img2, img1, lines2, pts2, pts1);
 
-	cv::hconcat(epipolar_11, epipolar_22, epipolar_1122);
 
-	imshow("1122", epipolar_1122);
+	Mat H1, H2;
+
+	// Perform epipolar line rectification
+	cv::stereoRectifyUncalibrated(pts1, pts2, F, img1.size(), H1, H2);
+
+
+	cv::Mat rectified1;
+	homography_warp(img1, H1, rectified1);
+	cv::resize(rectified1, rectified1, img1.size());
+	//cout << H1 << endl;
+	//cout << rectified1.size() << endl;
+
+	//cv::warpPerspective(img1, rectified1, H1, img1.size());
+
+	cv::Mat rectified2;
+	homography_warp(img2, H2, rectified2);
+	cv::resize(rectified2, rectified2, img2.size());
+	//cv::warpPerspective(img2, rectified2, H2, img2.size());
+
+
+	cv::Mat rectified, result;
+
+	cv::hconcat(rectified1, rectified2, rectified);
+	cv::hconcat(epipolar_11, epipolar_22, epipolar_1122);
+	cv::vconcat(epipolar_1122, rectified, result);
+	cv::namedWindow("result", cv::WINDOW_NORMAL);
+	imshow("result", result);
+
+
 	//int ii = 0;
 	//cout << typeid(img1).name() << endl;
 
