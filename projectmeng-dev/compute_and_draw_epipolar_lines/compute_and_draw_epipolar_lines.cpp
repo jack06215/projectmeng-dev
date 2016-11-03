@@ -129,8 +129,8 @@ int main(void)
 	cv::vconcat(epipolar_1122, rectified, result);
 	cv::namedWindow("result", cv::WINDOW_NORMAL);
 	imshow("result", result);
-	//int ii = 0;
-	//cout << typeid(img1).name() << endl;
+	// int ii = 0;
+	// cout << typeid(img1).name() << endl;
 	cvWaitKey(0);
 	return 0;
 }
