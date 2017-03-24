@@ -1,5 +1,3 @@
-#define DEBUG_READ_XML 0
-
 #include <opencv2/features2d.hpp>
 #include <opencv2/imgproc.hpp>
 #include <opencv2/opencv.hpp>
@@ -34,28 +32,138 @@ int numDigits(int number);
 //	return 0;
 //}
 
+#if 1
+//Experiment code: H(f'--> i) = H(f' --> i) * H(i --> i+1)
+int main(int argc, char* argv[])
+{
+	// Read the first input image
+	//Mat img1 = imread("result_0001.png");
+	//std::cout << argv[1] << std::endl;
+	//if (img1.empty())
+	//{
+	//	std::cerr << "Cannot open first frame, exiting the program" << std::endl;
+	//	return 3;
+	//}
 
-// ---------------------------------- DO NOT REMOVE ------------------------------------ //
- //Experiment code. Todo: output frontal parallel using the relation between 1st and current
-int main(void)
+	// Frontal
+	Mat H_10 = (cv::Mat_<double>(3, 3) <<
+		0.967411297833074, -0.0388960742494462, -419.621181949190,
+		-0.0588150626710047, 0.926587591729339, -380.797356154468,
+		0.000516160596666294, 0.000783955088496898, 0.540783017453796);
+
+	Mat frontal_1st;
+
+	//homography_warp(img1, H_10, frontal_1st);
+	//cv::resize(frontal_1st, frontal_1st, cv::Size(640, 480));
+	//cv::resize(frontal_1st, frontal_1st, cv::Size(480, 640));
+
+	cv::String video_name = "output2.avi";
+
+	VideoWriter  video_out(video_name, cv::VideoWriter::fourcc('F', 'M', 'P', '4'), 30, Size(2 * 640, 480));
+	//VideoWriter  video_out(video_name, cv::VideoWriter::fourcc('F', 'M', 'P', '4'), 30, Size(2 * 480, 640));
+
+	if (!video_out.isOpened())
+	{
+		std:cerr << "Colud not open" << video_name << std::endl;
+		return 1;
+	}
+	double t1 = cv::getTickCount();
+	for (int i = 1; i < 709; i++)
+	{
+		std::string inputname = "result_";
+		std::string format_1 = ".png";
+		std::string save_index = paddingZeros(i+1, 4);
+		Mat img2 = imread(inputname + save_index + format_1, -1);
+
+		if (img2.empty())
+		{
+			std::cerr << "Cannot open image frame, exiting the progam" << std::endl;
+			return 2;
+		}
+
+		inputname = "result_";
+		format_1 = ".png";
+		save_index = paddingZeros(i, 4);
+		Mat img1 = imread(inputname + save_index + format_1, -1);
+
+		if (img1.empty())
+		{
+			std::cerr << "Cannot open image frame, exiting the progam" << std::endl;
+			return 2;
+		}
+
+		std::vector<Point2f> pts1;
+		std::vector<Point2f> pts2;
+
+		// Simple AKAZE matching and find homography between them
+		simple_akaze_matching(img1, img2, pts1, pts2, inlier_threshold, nn_match_ratio);
+		Mat H = findHomography(pts1, pts2, CV_RANSAC);
+
+		//-- Homography from img1 to frontal-parallel view -- //
+		// The homogrpahy that warp the 1st frame to frontal-parallel view
+
+		// The homography that warp the 2nd frame to frontal-parallel view, it is the estimated result and it is defined as 
+		// the combination of two piece  of homographies
+		//		H.inv() : the inverse homography that transforms the 2nd frame to 1st frame.
+		//		H_10 : the homography that transforms the 1st to frontal-parallel view.
+		Mat H_20 = H_10 * H.inv();
+		H_10 = H_20;
+		Mat frontal_est, res;
+
+
+		homography_warp(img2, H_20, frontal_est);
+		cv::resize(frontal_est, frontal_est, cv::Size(640, 480));
+		cv::resize(img2, img2, cv::Size(640, 480));
+
+		/*cv::resize(frontal_est, frontal_est, cv::Size(480, 640));
+		cv::resize(img2, img2, cv::Size(480, 640));*/
+
+		cv::hconcat(img2, frontal_est, res);
+		//cout << res.size() << endl;
+		double t2 = cv::getTickCount();
+		if (t2)
+		{
+			double tdiff = (t2 - t1) / cv::getTickFrequency();
+			double fps = i / tdiff;
+			std::cout << "fps: " << fps << std::endl;
+		}
+
+		video_out << res;
+		waitKey(1);
+		//cout << i << " is saved " << endl;
+	}
+	return 0;
+}
+#endif
+
+
+#if 0
+//Experiment code: H(f'--> i) = H(f' --> 1) * H(1 --> i)
+int main(int argc, char* argv[])
 {
 
-	Mat img1 = imread("result_0001.png",-1);
+	Mat img1 = imread("result_0001.png");
+	std::cout << argv[1] << std::endl;
+	if (img1.empty())
+	{
+		std::cerr << "Cannot open first frame, exiting the program" << std::endl;
+		return 3;
+	}
 	Mat H_10 = (cv::Mat_<double>(3, 3) <<
-	0.971184591046875,	0, - 119.366440576991,
-		0.127815212616886,	0.844028447930878, - 549.284516967498,
-		-0.000421580470954004, 0.00112396778469679, 0.561217044961669);
+		0.967411297833074, - 0.0388960742494462, - 419.621181949190,
+		- 0.0588150626710047,	0.926587591729339, - 380.797356154468,
+		0.000516160596666294,	0.000783955088496898,	0.540783017453796);
 
 	Mat frontal_1st;
 
 	homography_warp(img1, H_10, frontal_1st);
-	//cv::resize(frontal_1st, frontal_1st, cv::Size(640, 480));
-	cv::resize(frontal_1st, frontal_1st, cv::Size(480, 640));
+	cv::resize(frontal_1st, frontal_1st, cv::Size(640, 480));
+	//cv::resize(frontal_1st, frontal_1st, cv::Size(480, 640));
 
 	cv::String video_name = "output.avi";
 
-	//VideoWriter  video_out(video_name, cv::VideoWriter::fourcc('F','M','P','4'), 30, Size(2 * 640, 480));
-	VideoWriter  video_out(video_name, cv::VideoWriter::fourcc('F', 'M', 'P', '4'), 30, Size(2 * 480, 640));
+	VideoWriter  video_out(video_name, cv::VideoWriter::fourcc('F','M','P','4'), 30, Size(2 * 640, 480));
+	//VideoWriter  video_out(video_name, cv::VideoWriter::fourcc('F', 'M', 'P', '4'), 30, Size(2 * 480, 640));
 
 	if (!video_out.isOpened())
 	{
@@ -70,17 +178,21 @@ int main(void)
 		std::string save_index = paddingZeros(i,4);
 		Mat img2 = imread(inputname + save_index + format_1,-1);
 
+		if (img2.empty())
+		{
+			std::cerr << "Cannot open image frame, exiting the progam" << std::endl;
+			return 2;
+		}
+
 		std::vector<Point2f> pts1;
 		std::vector<Point2f> pts2;
 
 		// Simple AKAZE matching and find homography between them
 		simple_akaze_matching(img1, img2, pts1, pts2, inlier_threshold, nn_match_ratio);
-		//cout << pts1.size() << " " << pts2.size() << endl;
 		Mat H = findHomography(pts1, pts2, CV_RANSAC);
 
 		//-- Homography from img1 to frontal-parallel view -- //
 		// The homogrpahy that warp the 1st frame to frontal-parallel view
-
 
 		// The homography that warp the 2nd frame to frontal-parallel view, it is the estimated result and it is defined as 
 		// the combination of two piece  of homographies
@@ -91,11 +203,11 @@ int main(void)
 
 
 		homography_warp(img2, H_20, frontal_est);
-		/*cv::resize(frontal_est, frontal_est, cv::Size(640, 480));
-		cv::resize(img2, img2, cv::Size(640, 480));*/
+		cv::resize(frontal_est, frontal_est, cv::Size(640, 480));
+		cv::resize(img2, img2, cv::Size(640, 480));
 
-		cv::resize(frontal_est, frontal_est, cv::Size(480, 640));
-		cv::resize(img2, img2, cv::Size(480, 640));
+		/*cv::resize(frontal_est, frontal_est, cv::Size(480, 640));
+		cv::resize(img2, img2, cv::Size(480, 640));*/
 
 		cv::hconcat(img2, frontal_est, res);
 		//cout << res.size() << endl;
@@ -107,7 +219,7 @@ int main(void)
 	}
 	return 0;
 }
-
+#endif
 int numDigits(int number)
 {
 	int digits = 0;

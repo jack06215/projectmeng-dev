@@ -1,7 +1,7 @@
 ﻿  akaze_feature_matching.cpp
   Generating code
-  5 of 264 functions ( 1.9%) were compiled, the rest were copied from previous compilation.
+  5 of 256 functions ( 2.0%) were compiled, the rest were copied from previous compilation.
     0 functions were new in current compilation
-    12 functions had inline decision re-evaluated but remain unchanged
+    0 functions had inline decision re-evaluated but remain unchanged
   Finished generating code
   akaze_feature_matching.vcxproj -> D:\My Github\projectmeng-dev\projectmeng-dev\x64\Release\akaze_feature_matching.exe

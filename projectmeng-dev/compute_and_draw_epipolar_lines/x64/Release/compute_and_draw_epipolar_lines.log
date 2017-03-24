@@ -1,9 +1,1 @@
-﻿  compute_and_draw_epipolar_lines.cpp
-compute_and_draw_epipolar_lines.cpp(150): warning C4244: 'argument': conversion from 'float' to 'int', possible loss of data
-compute_and_draw_epipolar_lines.cpp(152): warning C4244: 'argument': conversion from 'float' to 'int', possible loss of data
-  Generating code
-  32 of 653 functions ( 4.9%) were compiled, the rest were copied from previous compilation.
-    0 functions were new in current compilation
-    6 functions had inline decision re-evaluated but remain unchanged
-  Finished generating code
-  compute_and_draw_epipolar_lines.vcxproj -> D:\My Github\projectmeng-dev\projectmeng-dev\x64\Release\compute_and_draw_epipolar_lines.exe
+﻿  compute_and_draw_epipolar_lines.vcxproj -> D:\My Github\projectmeng-dev\projectmeng-dev\x64\Release\compute_and_draw_epipolar_lines.exe

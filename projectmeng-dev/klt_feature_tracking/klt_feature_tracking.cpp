@@ -25,6 +25,7 @@ void onMouse_printCoordinate(int event, int x, int y, int, void*);
 int main(int argc, char* argv[])
 {
 	cv::VideoCapture cap;
+	//cap.open("http://192.168.1.1:8080/videofeed?dummy=param.mjpg");
 	cap.open(0);
 	if (!cap.isOpened())
 	{
@@ -40,6 +41,8 @@ int main(int argc, char* argv[])
 	{
 		cap >> previous_cap;
 		cap >> current_cap;
+		//cv::resize(previous_cap, previous_cap, cv::Size(640, 480));
+		//cv::resize(current_cap, current_cap, cv::Size(640, 480));
 		trackFeature(previous_cap, current_cap);
 		feature_point = drawFeatureTrace(current_cap);
 		//temp = getWarpImage();

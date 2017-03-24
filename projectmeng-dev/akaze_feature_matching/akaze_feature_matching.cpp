@@ -11,21 +11,18 @@
 using namespace cv;
 using namespace std;
 
-const float inlier_threshold = 2.5f;
-const float nn_match_ratio = 0.8f;
+const float inlier_threshold = 0.8f;
+const float nn_match_ratio = 2.5f;
 
 // ---------------------------------- DO NOT REMOVE ------------------------------------ //
 // Experiment code. Todo: output frontal parallel using the relation between 1st and current
 int main(void)
 {
-
+	// Read input image
 	Mat img1 = imread("result_0001.png");
-	Mat img2 = imread("result_0257.png");
-#if DEBUG_READ_XML
-	Mat homography;
-	FileStorage fs("H1to3p.xml", FileStorage::READ);
-	fs.getFirstTopLevelNode() >> homography;
-#endif // DEBUG_READ_XML
+	Mat img2 = imread("result_0002.png");
+
+	// Keypoint and descriptor
 	vector<KeyPoint> kpts1, kpts2;
 	Mat desc1, desc2;
 
@@ -47,44 +44,41 @@ int main(void)
 		float dist2 = nn_matches[i][1].distance;
 		if (dist1 < nn_match_ratio * dist2)
 		{
-			cout << dist1 << " " << dist2 << endl;
+			//cout << dist1 << " " << dist2 << endl;
 			matched1.push_back(kpts1[first.queryIdx]);
 			matched2.push_back(kpts2[first.trainIdx]);
 		}
-		else
-		{
-			cout << "Skip" << endl;
-		}
+		//else
+		//{
+		//	cout << "Skip" << endl;
+		//}
 	}
+
+	// cout << kpts1.at(1).pt << endl;
 
 	for (unsigned i = 0; i < matched1.size(); i++)
 	{
 		Mat col = Mat::ones(3, 1, CV_64F);
 		col.at<double>(0) = matched1[i].pt.x;
 		col.at<double>(1) = matched1[i].pt.y;
-#if DEBUG_READ_XML
-		col = homography*col;
-		col /= col.at<double>(2);
-#endif // DEBUG_READ_XML
 
 		double dist = sqrt(	pow(col.at<double>(0) - matched2[i].pt.x, 2) +
 							pow(col.at<double>(1) - matched2[i].pt.y, 2));
 
-		//cout << dist << endl;
-		//cout << dist << endl;
-		//if (dist < inlier_threshold)
-		//{
-			
+		//std::cout << dist << std::endl;
+
+		if (dist < inlier_threshold)
+		{
 			int new_i = static_cast<int>(inliers1.size());
 			inliers1.push_back(matched1[i]);
 			inliers2.push_back(matched2[i]);
 			good_matches.push_back(DMatch(new_i, new_i, 0));
-		//}
+		}
 	}
 
 	Mat res;
 	drawMatches(img1, inliers1, img2, inliers2, good_matches, res);
-	imshow("res.png", res);
+	imshow("res", res);
 //
 //	//-- Localize the object
 //	std::vector<Point2f> pts1;
