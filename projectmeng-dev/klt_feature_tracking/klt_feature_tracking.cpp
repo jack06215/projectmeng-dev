@@ -15,8 +15,8 @@ std::vector<cv::Point2f> goodFeatures;
 std::vector<cv::Point2f> trackedFeatures;
 
 cv::Mat getWarpImage();
-cv::Mat drawFeatureTrace(cv::Mat &src);
-cv::Mat drawFeaturePoint(cv::Mat &src);
+cv::Mat drawFeatureTrace(cv::Mat& src);
+cv::Mat drawFeaturePoint(cv::Mat& src);
 void matchFeature();
 void detectFeature();
 void trackFeature(cv::Mat I1, cv::Mat I2);
@@ -56,12 +56,12 @@ int main(int argc, char* argv[])
 cv::Mat getWarpImage()
 {
 	cv::Mat warp_src;
-	tform = cv::findHomography(goodFeatures, trackedFeatures, CV_RANSAC, 1);
-	cv::warpPerspective(image2, warp_src, tform, image2.size(), CV_INTER_LINEAR + CV_WARP_FILL_OUTLIERS + CV_WARP_INVERSE_MAP);
+	tform = cv::findHomography(goodFeatures, trackedFeatures, cv::RANSAC, 1);
+	cv::warpPerspective(image2, warp_src, tform, image2.size(), cv::INTER_LINEAR + cv::WARP_FILL_OUTLIERS + cv::WARP_INVERSE_MAP);
 	return warp_src;
 }
 
-cv::Mat drawFeaturePoint(cv::Mat &src)
+cv::Mat drawFeaturePoint(cv::Mat& src)
 {
 	cv::Mat src_copy;
 	src.copyTo(src_copy);
@@ -76,7 +76,7 @@ cv::Mat drawFeaturePoint(cv::Mat &src)
 	return src_copy;
 }
 
-cv::Mat drawFeatureTrace(cv::Mat &src)
+cv::Mat drawFeatureTrace(cv::Mat& src)
 {
 	cv::Mat src_copy;
 	src.copyTo(src_copy);
@@ -114,7 +114,7 @@ void detectFeature()
 	double k = 0.04;
 	int maxCorners = 1000;
 	cv::Mat src_gray;
-	cv::cvtColor(image1, src_gray, CV_RGB2GRAY);
+	cv::cvtColor(image1, src_gray, cv::COLOR_RGB2GRAY);
 	cv::goodFeaturesToTrack(src_gray, goodFeatures, maxCorners, qualityLevel, minDiatance, cv::Mat(), blockSize, useHarrisDetector, k);
 	//std::cout << goodFeatures.size() << std::endl;
 }
@@ -129,7 +129,7 @@ void trackFeature(cv::Mat I1, cv::Mat I2)
 
 void onMouse_printCoordinate(int event, int x, int y, int, void*)
 {
-	if (event != CV_EVENT_LBUTTONDOWN)
+	if (event != cv::EVENT_LBUTTONDOWN)
 		return;
 
 	cv::Point pt = cv::Point(x, y);
